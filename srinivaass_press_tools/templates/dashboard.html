@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – Srinivaass Press Tools{% endblock %}
+
+{% block content %}
+
+<div class="page-header mb-4">
+    <h2 class="fw-bold mb-1"><i class="bi bi-bar-chart-line text-info me-2"></i>Dashboard</h2>
+    <p class="text-muted mb-0">Business overview &amp; performance insights</p>
+</div>
+
+<!-- ── Summary Cards ── -->
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body p-3">
+                <div class="stat-icon bg-primary-soft text-primary mb-2">
+                    <i class="bi bi-gear"></i>
+                </div>
+                <div class="stat-value">{{ "{:,}".format(total_production) }}</div>
+                <div class="stat-label">Total Pieces Produced</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body p-3">
+                <div class="stat-icon bg-success-soft text-success mb-2">
+                    <i class="bi bi-currency-rupee"></i>
+                </div>
+                <div class="stat-value text-success">₹{{ "{:,.0f}".format(total_revenue) }}</div>
+                <div class="stat-label">Total Sales Revenue</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body p-3">
+                <div class="stat-icon bg-warning-soft text-warning mb-2">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="stat-value">{{ "{:,.1f}".format(total_steel_kg) }} <small>kg</small></div>
+                <div class="stat-label">Steel Purchased</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body p-3">
+                <div class="stat-icon bg-danger-soft text-danger mb-2">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div class="stat-value text-danger">₹{{ "{:,.0f}".format(total_steel_cost) }}</div>
+                <div class="stat-label">Steel Cost Spent</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Insights Row ── -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.75rem; letter-spacing:.05em;">
+                    <i class="bi bi-trophy me-1 text-warning"></i>Top Insights
+                </h6>
+                <div class="insight-row mb-3">
+                    <span class="insight-label">
+                        <i class="bi bi-gear text-primary me-2"></i>Most Produced Product
+                    </span>
+                    <span class="insight-value">
+                        {% if most_produced %}
+                            <strong>{{ most_produced['product'] }}</strong>
+                            <span class="badge bg-primary-soft text-primary ms-2">
+                                {{ "{:,}".format(most_produced['total']) }} pcs
+                            </span>
+                        {% else %}
+                            <span class="text-muted">No data</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <hr class="my-2">
+                <div class="insight-row">
+                    <span class="insight-label">
+                        <i class="bi bi-receipt text-success me-2"></i>Most Sold Product
+                    </span>
+                    <span class="insight-value">
+                        {% if most_sold %}
+                            <strong>{{ most_sold['product'] }}</strong>
+                            <span class="badge bg-success-soft text-success ms-2">
+                                {{ "{:,}".format(most_sold['total']) }} pcs
+                            </span>
+                        {% else %}
+                            <span class="text-muted">No data</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.75rem; letter-spacing:.05em;">
+                    <i class="bi bi-bar-chart me-1 text-primary"></i>Top Products by Production
+                </h6>
+                {% if top_products %}
+                    {% for row in top_products %}
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-semibold">{{ row['product'] }}</span>
+                            <span class="small text-muted">{{ "{:,}".format(row['total']) }} pcs</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar"
+                                 style="width: {{ (row['total'] / top_products[0]['total'] * 100)|round }}%">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-muted text-center py-3">No production data yet.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Charts Row ── -->
+<div class="row g-3">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.75rem; letter-spacing:.05em;">
+                    <i class="bi bi-graph-up-arrow me-1 text-success"></i>Monthly Sales Revenue
+                </h6>
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.75rem; letter-spacing:.05em;">
+                    <i class="bi bi-gear me-1 text-primary"></i>Monthly Production
+                </h6>
+                <canvas id="productionChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // ── Data from Flask ──
+    const revenueLabels = {{ monthly_revenue | map(attribute='month') | list | tojson }};
+    const revenueData   = {{ monthly_revenue | map(attribute='revenue') | list | tojson }};
+
+    const prodLabels    = {{ monthly_production | map(attribute='month') | list | tojson }};
+    const prodData      = {{ monthly_production | map(attribute='pieces') | list | tojson }};
+
+    // ── Revenue Bar Chart ──
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'bar',
+        data: {
+            labels: revenueLabels,
+            datasets: [{
+                label: 'Revenue (₹)',
+                data: revenueData,
+                backgroundColor: 'rgba(25, 135, 84, 0.15)',
+                borderColor: 'rgba(25, 135, 84, 0.8)',
+                borderWidth: 2,
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => '₹ ' + ctx.parsed.y.toLocaleString('en-IN')
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: val => '₹' + (val / 1000).toFixed(0) + 'K'
+                    },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // ── Production Line Chart ──
+    new Chart(document.getElementById('productionChart'), {
+        type: 'line',
+        data: {
+            labels: prodLabels,
+            datasets: [{
+                label: 'Pieces',
+                data: prodData,
+                backgroundColor: 'rgba(13,110,253,0.1)',
+                borderColor: 'rgba(13,110,253,0.8)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(13,110,253,1)',
+                pointRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endblock %}

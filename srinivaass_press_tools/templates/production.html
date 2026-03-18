@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Production – Srinivaass Press Tools{% endblock %}
+
+{% block content %}
+
+<div class="page-header mb-4">
+    <h2 class="fw-bold mb-1"><i class="bi bi-gear-wide-connected text-primary me-2"></i>Production Entry</h2>
+    <p class="text-muted mb-0">Record daily manufacturing output</p>
+</div>
+
+<div class="row g-4">
+    <!-- ── Entry Form ── -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-form">
+            <div class="card-header bg-primary text-white py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-plus-circle me-2"></i>New Production Entry</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('production') }}" novalidate>
+
+                    <div class="mb-3">
+                        <label for="date" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="date" name="date"
+                               value="{{ today }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="product" class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="product" name="product"
+                               placeholder="e.g. Bracket A, Washer B" required>
+                        <div class="form-text">Enter the exact product or component name.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="pieces" class="form-label fw-semibold">Pieces Manufactured <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="pieces" name="pieces"
+                               min="1" placeholder="e.g. 250" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                        <i class="bi bi-save me-2"></i>Save Entry
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Records Table ── -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">Production Records</h6>
+                <span class="badge bg-primary-soft text-primary">{{ records|length }} entries</span>
+            </div>
+            <div class="card-body p-0">
+                {% if records %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">#</th>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th class="text-end pe-4">Pieces</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in records %}
+                            <tr>
+                                <td class="ps-4 text-muted small">{{ row.id }}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        {{ row.date }}
+                                    </span>
+                                </td>
+                                <td><strong>{{ row.product }}</strong></td>
+                                <td class="text-end pe-4">
+                                    <span class="badge bg-primary-soft text-primary fw-semibold fs-6">
+                                        {{ "{:,}".format(row.pieces) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                    No production entries yet. Add your first entry!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-set today's date on load
+    document.getElementById('date').valueAsDate = new Date();
+</script>
+{% endblock %}

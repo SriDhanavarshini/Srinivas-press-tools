@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Steel Purchase – Srinivaass Press Tools{% endblock %}
+
+{% block content %}
+
+<div class="page-header mb-4">
+    <h2 class="fw-bold mb-1"><i class="bi bi-box-seam text-warning me-2"></i>Steel Purchase</h2>
+    <p class="text-muted mb-0">Track raw material procurement</p>
+</div>
+
+<div class="row g-4">
+    <!-- ── Entry Form ── -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-form">
+            <div class="card-header bg-warning text-dark py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-plus-circle me-2"></i>New Purchase</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('steel') }}" novalidate>
+
+                    <div class="mb-3">
+                        <label for="date" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="supplier" class="form-label fw-semibold">Supplier Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="supplier" name="supplier"
+                               placeholder="e.g. Tata Steel Chennai" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="quantity_kg" class="form-label fw-semibold">Quantity (kg) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="quantity_kg" name="quantity_kg"
+                                   min="0.1" step="0.1" placeholder="e.g. 500" required oninput="calcRate()">
+                            <span class="input-group-text">kg</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cost" class="form-label fw-semibold">Total Cost (₹) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" class="form-control" id="cost" name="cost"
+                                   min="1" step="0.01" placeholder="e.g. 45000" required oninput="calcRate()">
+                        </div>
+                    </div>
+
+                    <!-- Rate indicator -->
+                    <div class="mb-4 p-3 bg-warning-soft rounded-3">
+                        <label class="form-label fw-semibold text-warning-dark mb-1">
+                            <i class="bi bi-graph-up me-1"></i>Rate per kg
+                        </label>
+                        <div class="fs-4 fw-bold text-warning-dark" id="rate_display">₹ —</div>
+                        <div class="form-text">Auto-calculated</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 py-2 fw-semibold text-dark">
+                        <i class="bi bi-save me-2"></i>Save Purchase
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Records Table ── -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">Purchase Records</h6>
+                <span class="badge bg-warning-soft text-warning-dark">{{ records|length }} entries</span>
+            </div>
+            <div class="card-body p-0">
+                {% if records %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Date</th>
+                                <th>Supplier</th>
+                                <th class="text-end">Qty (kg)</th>
+                                <th class="text-end">Rate/kg</th>
+                                <th class="text-end pe-4">Total Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in records %}
+                            <tr>
+                                <td class="ps-3">
+                                    <span class="badge bg-light text-dark border">{{ row.date }}</span>
+                                </td>
+                                <td><strong>{{ row.supplier }}</strong></td>
+                                <td class="text-end">{{ "{:,.1f}".format(row.quantity_kg) }}</td>
+                                <td class="text-end text-muted">
+                                    ₹{{ "%.2f"|format(row.cost / row.quantity_kg) }}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <span class="badge bg-warning-soft text-warning-dark fw-semibold">
+                                        ₹{{ "{:,.0f}".format(row.cost) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-box-seam fs-1 d-block mb-2 opacity-50"></i>
+                    No steel purchases recorded yet. Add your first entry!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('date').valueAsDate = new Date();
+
+    function calcRate() {
+        const qty  = parseFloat(document.getElementById('quantity_kg').value) || 0;
+        const cost = parseFloat(document.getElementById('cost').value) || 0;
+        const rate = qty > 0 ? cost / qty : 0;
+        document.getElementById('rate_display').textContent =
+            qty > 0 ? '₹ ' + rate.toFixed(2) : '₹ —';
+    }
+</script>
+{% endblock %}
